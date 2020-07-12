@@ -56,7 +56,7 @@ const getParameterByName = function(name, url) {
     log.appendChild(document.createElement("br"));
 	log.style.display = "block";
   } else {
-    iframe.src = "https://script.google.com/macros/s/" + appId + "/exec";
+    iframe.src = "https://script.google.com/macros/s/" + appId + "/exec" + window.location.search;
     iframe.style.display = "block";
   }
   
