@@ -1,0 +1,72 @@
+ <!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+#webappContainer {
+  margin: 0;
+  padding: 0;
+  border:none;
+  width:100%;
+  height:100%;
+}
+#log {
+  font-family: monospace;
+  padding:1em;
+}
+</style>
+</head>
+<body>
+<iframe
+  id="webappContainer"
+  src=""
+  title=""
+  allow="accelerometer *; ambient-light-sensor *; autoplay *; camera *; encrypted-media *; fullscreen *; geolocation *; gyroscope *; magnetometer *; microphone *; midi *; payment *; picture-in-picture *; speaker *; usb *; vibrate *; vr *"
+  sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-top-navigation"
+  style="display:none"
+></iframe>
+<div id="log" style="display:none"></div>
+<script>
+//https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+const getParameterByName = function(name, url) {
+  if (!url) url = window.location.href;
+  name = name.replace(/[\[\]]/g, '\\$&');
+  let regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+  results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
+};
+
+(function(){
+  let appId = getParameterByName("appid");
+  let title = getParameterByName("title");
+  
+  let log = document.getElementById("log");
+  let iframe = document.getElementById("webappContainer")
+  
+  if( appId==null || appId.length==0 ) {
+    log.appendChild(document.createTextNode("Failed to launch app script, appid not found/defined in query parameter."));
+    log.appendChild(document.createElement("br"));
+	log.style.display = "block";
+  } else {
+    iframe.src = "https://script.google.com/macros/s/" + appId + "/exec";
+    iframe.style.display = "block";
+  }
+  
+  if( title==null || title.length==0 ) {
+    title = "App Script Container";
+  }
+  iframe.title = title;
+  document.title = title;
+})();
+</script>
+
+</body>
+</html>
