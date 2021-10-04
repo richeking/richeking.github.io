@@ -37,18 +37,18 @@ html, body {
   
   //log error message to console and to page #log element
   function logError(error) {
-	console.error(error);
-	let logLine = document.createElement("div");
-	logLine.classList.add("error");
-	logLine.textContent = error;
-	document.getElementById("log").appendChild(logLine);
+    console.error(error);
+    let logLine = document.createElement("div");
+    logLine.classList.add("error");
+    logLine.textContent = error;
+    document.getElementById("log").appendChild(logLine);
   }
   
   //log message to #log element
   function log(msg) {
     let logLine = document.createElement("div");
-	logLine.textContent = msg;
-	document.getElementById("log").appendChild(logLine);
+    logLine.textContent = msg;
+    document.getElementById("log").appendChild(logLine);
   }
   
   log("Welcome to google app script runner");
@@ -56,34 +56,34 @@ html, body {
   response.text()
   .then(
     async (responseText) => {
-	  let dnsEntry = JSON.parse(responseText);
-	  if ( dnsEntry.status != 200 ) {
-		throw new Error(dnsEntry.status + " " + dnsEntry.message);
-	  }
-	  log("Loading app script, please wait");
-	  let appSrc = "https://script.google.com/macros/s/" +  dnsEntry.message + window.location.search;
-	  let appPage = await fetch(appSrc);
-	  return appPage.text();
+      let dnsEntry = JSON.parse(responseText);
+      if ( dnsEntry.status != 200 ) {
+        throw new Error(dnsEntry.status + " " + dnsEntry.message);
+      }
+      log("Loading app script, please wait");
+      let appSrc = "https://script.google.com/macros/s/" +  dnsEntry.message + window.location.search;
+      let appPage = await fetch(appSrc);
+      return appPage.text();
     },
     (error) => {
-	  logError("Failed to parse app script dns response");
+      logError("Failed to parse app script dns response");
       logError(error);
-	}
+    }
   )
   .then(
     //get the app script html and replace the current page with it
     (responseText) => {
-	  if (responseText == null) {
-	    return;
-	  }
-	  document.open();
+      if (responseText == null) {
+        return;
+      }
+      document.open();
       document.write(responseText);
       document.close();
     },
     (error) => {
-	  logError("Failed to get app script html content");
+      logError("Failed to get app script html content");
       logError(error);
-	}
+    }
   );
 })(this);
 </script>
