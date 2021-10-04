@@ -1,0 +1,92 @@
+ <!DOCTYPE html>
+<html>
+<head>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<title>Google App Script Runner</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  color: #ddd;
+  background-color: #3a3a3a;
+}
+#log {
+  padding-top:5vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  font-family: monospace;
+  font-size: 3vmin;
+}
+.error {
+  color: #faa;
+}
+</style>
+</head>
+<body>
+<div id="log"></div>
+<script>
+(async function(window) {
+  const gasBaseUrl = "https://script.google.com/macros/s/";
+  const appScriptDns = gasBaseUrl + "AKfycbxgiogMb6Nd4w40suY_8DLRTHqfXLcrkSgxHPuYNW626ayi5vhT-gxX1_RYjQ9jtEdh/exec";
+
+  
+  //log error message to console and to page #log element
+  function logError(error) {
+	console.error(error);
+	let logLine = document.createElement("div");
+	logLine.classList.add("error");
+	logLine.textContent = error;
+	document.getElementById("log").appendChild(logLine);
+  }
+  
+  //log message to #log element
+  function log(msg) {
+    let logLine = document.createElement("div");
+	logLine.textContent = msg;
+	document.getElementById("log").appendChild(logLine);
+  }
+  
+  log("Welcome to google app script runner");
+  let response = await fetch(appScriptDns + window.location.search);
+  response.text()
+  .then(
+    async (responseText) => {
+	  let dnsEntry = JSON.parse(responseText);
+	  if ( dnsEntry.status != 200 ) {
+		throw new Error(dnsEntry.status + " " + dnsEntry.message);
+	  }
+	  log("Loading app script, please wait");
+	  let appSrc = "https://script.google.com/macros/s/" +  dnsEntry.message + window.location.search;
+	  let appPage = await fetch(appSrc);
+	  return appPage.text();
+    },
+    (error) => {
+	  logError("Failed to parse app script dns response");
+      logError(error);
+	}
+  )
+  .then(
+    //get the app script html and replace the current page with it
+    (responseText) => {
+	  if (responseText == null) {
+	    return;
+	  }
+	  document.open();
+      document.write(responseText);
+      document.close();
+    },
+    (error) => {
+	  logError("Failed to get app script html content");
+      logError(error);
+	}
+  );
+})(this);
+</script>
+
+</body>
+</html>
