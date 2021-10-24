@@ -33,7 +33,51 @@ html, body {
 (async function(window) {
   const gasBaseUrl = "https://script.google.com/macros/s/";
   const appScriptDns = gasBaseUrl + "AKfycbxc1DjJcrU9vbMHRG73uAiJwvjlWwK7orSTdk-Lc5ihBVFrWo4vYPc1nbRCFJp1AKPR/exec";
+  const dnsCache = {};
 
+  /**
+   * Get a google app script url based by dns entry, results are cached.
+   * Uses window.location.search if no value is passed in.
+   * @Param String - name, dns name
+   * @Return string - script id
+   */
+  async function getScriptUrlByName(name) {
+    let rawResponse;
+    
+    let queryParam = name == null ? window.location.search : "?app=" + name;
+    
+    if (queryParam in dnsCache) {
+      if (dnsCache[queryParam] instanceof Error) {
+        throw dnsCache[queryParam];
+      }
+      return dnsCache[queryParam];
+    }
+    
+    try {
+      rawResponse = await fetch(appScriptDns + queryParam);
+    } catch (ex) {
+      dnsCache[queryParam] = new Error("Failed to get dns app script response", { cause: ex });
+      throw dnsCache[queryParam];
+    }
+    let dnsEntry;
+    try {
+      dnsEntry = await rawResponse.json();
+    } catch (ex) {
+      dnsCache[queryParam] = new Error("Failed to parse dns app script response", { cause: ex });
+      throw dnsCache[queryParam];
+    }
+    
+    if ( dnsEntry == null || dnsEntry.status != 200 ) {
+      dnsCache[queryParam] = new Error(dnsEntry.status + " " + dnsEntry.message);
+      throw dnsCache[queryParam];
+    }
+    dnsCache[queryParam] = dnsEntry.message;
+    return dnsCache[queryParam];
+  }
+  if (!("getScriptUrlByName" in window)) {
+    window.getScriptUrlByName = getScriptUrlByName;
+  }
+  
   
   //log error message to console and to page #log element
   function logError(error) {
@@ -51,34 +95,20 @@ html, body {
     document.getElementById("log").appendChild(logLine);
   }
   
-  log("Welcome to google app script runner");
-  let rawResponse;
+  log("Welcome to google app script runner"); 
+  let scriptId;
   try {
-    rawResponse = await fetch(appScriptDns + window.location.search);
+    scriptId = await getScriptUrlByName(); //defaults to window.location.search
   } catch (ex) {
-    logError("Failed to parse app script dns response");
+    logError(ex.message);
     logError(ex);
-    return;
-  }
-  
-  let dnsEntry;
-  try {
-    dnsEntry = await rawResponse.json();
-  } catch (ex) {
-    logError("Failed to parse app script dns response");
-    logError(ex);
-    return;
-  }
-
-  if ( dnsEntry.status != 200 ) {
-    logError(dnsEntry.status + " " + dnsEntry.message);
     return;
   }
   
   log("Loading app script, please wait");
   let appHtml;
   try {
-    let appSrc = "https://script.google.com/macros/s/" +  dnsEntry.message + window.location.search;
+    let appSrc = gasBaseUrl +  scriptId + window.location.search;
     let appPage = await fetch(appSrc);
     appHtml = await appPage.text();
   } catch (ex) {
