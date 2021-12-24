@@ -77,7 +77,7 @@ html, body {
   if (!("getScriptUrlByName" in window)) {
     window.getScriptUrlByName = getScriptUrlByName;
   }
-  
+
   
   //log error message to console and to page #log element
   function logError(error) {
@@ -95,8 +95,19 @@ html, body {
     document.getElementById("log").appendChild(logLine);
   }
   
-  log("Welcome to google app script runner"); 
-  let scriptId;
+  log("Welcome to google app script runner");
+ 
+  let scriptId = "";
+  /**
+   Get the current google app script base url
+   */
+  function getCurrentGasUrl = function () {
+    return currentPageUrl = gasBaseUrl +  scriptId;
+  }
+  if (!("getCurrentGasUrl" in window)) {
+    window.getCurrentGasUrl = getCurrentGasUrl;
+  }
+ 
   try {
     scriptId = await getScriptUrlByName(); //defaults to window.location.search
   } catch (ex) {
